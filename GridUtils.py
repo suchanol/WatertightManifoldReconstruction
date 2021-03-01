@@ -1,5 +1,23 @@
 import Grid
 import copy
+import math
+import itertools
+
+
+def refine_grid(grid, new_resolution):
+    new_grid = Grid()
+    new_grid.resolution = new_resolution
+    new_grid.voxel_size = grid.get_bounds() / new_resolution
+    ratio = math.ceil(new_resolution / grid.resolution)
+    for voxel in grid.get_voxels():
+        bounds = [range(ratio * x, ratio) for x in voxel]
+        for new_voxel in itertools.product(*bounds):
+            if new_grid.is_valid(new_voxel):
+                new_grid.set_occupied(new_voxel)
+
+    for point in grid.get_points():
+        new_grid.insert_point(point)
+    return new_grid
 
 
 def flood_filling(x, y, z, grid):

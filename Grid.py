@@ -2,6 +2,12 @@ import numpy as np
 
 
 class Grid:
+
+    def __init__(self):
+        self.voxel_size = 0
+        self.points = {}
+        self.resolution = 0
+
     def __init__(self, points, resolution):
         self.voxel_size = 0
         self.points = {}
@@ -23,6 +29,9 @@ class Grid:
 
     def get_voxel(self, p):
         return (d // self.voxel_size for d in p)
+
+    def get_points(self):
+        return self.points.values()
 
     # p = (x,y,z)
     # divide the x y z by the dimension of the voxel cube, the rounded down number indicates the indices
@@ -60,7 +69,7 @@ class Grid:
         return vi in self.points
 
     def set_occupied(self, vi):
-        assert self.is_occupied(vi)
+        assert self.is_valid(vi)
         self.points[vi] = None
 
     # we avoid negative indexes therefore starting with 0 up to resolution
