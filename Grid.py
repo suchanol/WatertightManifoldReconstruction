@@ -1,4 +1,5 @@
 import numpy as np
+import plyfile
 
 up = + np.array([0, 1, 0])  # up
 down = - np.array([0, 1, 0])  # down
@@ -12,8 +13,10 @@ edges = [(front, up), (front, down), (front, right), (front, left),
          (left, up), (left, down), (left, back),
          (back, up), (back, down)]
 
+center = np.array([1, 1, 1]) / 2.0
 
-class Grid():
+
+class Grid:
 
     def __init__(self, points=[], resolution=0):
         self.voxel_size = 0
@@ -26,7 +29,12 @@ class Grid():
             self.voxels = np.array([np.empty(3)], dtype=int)
 
     def make_grid_from_file(self, file, resolution):
-        pass
+        plydata = plyfile.PlyData.read(file)
+        point_cloud = np.zeros(shape=(plydata['vertex'].count, 3), dtype=np.float32)
+        point_cloud[:, 0] = plydata['vertex'].data['x']
+        point_cloud[:, 1] = plydata['vertex'].data['y']
+        point_cloud[:, 2] = plydata['vertex'].data['z']
+        self.make_grid(point_cloud, resolution)
 
     def make_grid(self, points, resolution):
         self.resolution = resolution
@@ -35,8 +43,11 @@ class Grid():
         for p in points:
             self.insert_point(p)
 
+    def get_voxel_center(self, v):
+        return v * self.voxel_size + np.ones((3, 1)) * self.voxel_size / 2.0
+
     def get_voxels(self):
-        return self.voxels
+        return np.unique(self.voxels, axis=0)
 
     def get_voxel(self, p):
         return (d // self.voxel_size for d in p)

@@ -2,6 +2,7 @@ import Grid
 import copy
 import math
 import itertools
+import numpy as np
 
 
 def refine_grid(grid, new_resolution):
@@ -20,12 +21,14 @@ def refine_grid(grid, new_resolution):
     return new_grid
 
 
-def flood_filling(x, y, z, grid):
-    if not grid.is_occupied(x, y, z):
-        grid.set_occupied(x, y, z)
-        neighbors = grid.get_valid_neighbors((x, y, z))
+def flood_filling(x, y, z, grid, flooded=[]):
+    if not grid.is_occupied(x, y, z) and (x, y, z) not in flooded:
+        flooded = flooded + [(x, y, z)]
+        neighbors = grid.get_neighbors((x, y, z))
+        neighbors = list(filter(lambda v: np.logical_and.reduce([-1 <= x <= grid.resolution for x in v]), neighbors))
         for neighbor in neighbors:
-            flood_filling(neighbor, grid)
+            flooded = flooded + flood_filling(neighbor, grid, flooded)
+    return flooded
 
 
 def diffusion(v_crust, cur_phi):
@@ -39,11 +42,19 @@ def diffusion(v_crust, cur_phi):
 
 
 def dilation(v_crust):
+    dilated_voxels = []
     new_v_crust = copy.deepcopy(v_crust)
     for voxel in v_crust.get_voxels():
-        for neighbor in v_crust.get_valid_neighbors(voxel):
-            new_v_crust.set_occupied(neighbor)
-    return new_v_crust
+        dilated_voxels = dilated_voxels + dilate_voxel(voxel, new_v_crust)
+    return new_v_crust, dilated_voxels
+
+
+def dilate_voxel(voxel, grid):
+    dilated_voxels = []
+    for neighbor in grid.get_valid_neighbors(voxel):
+        dilated_voxels.append(tuple(neighbor))
+        grid.set_occupied(neighbor)
+    return dilated_voxels
 
 
 def initial_phi(grid):
