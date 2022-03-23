@@ -11,7 +11,7 @@ def refine_grid(grid, new_resolution):
     new_grid.voxel_size = grid.get_bounds() / new_resolution
     ratio = math.ceil(new_resolution / grid.resolution)
     for voxel in grid.get_voxels():
-        bounds = [list(range(ratio * x, ratio)) for x in voxel]
+        bounds = [list(range(ratio * int(x), ratio)) for x in voxel]
         for new_voxel in itertools.product(*bounds):
             if new_grid.is_valid(new_voxel):
                 new_grid.set_occupied(new_voxel)

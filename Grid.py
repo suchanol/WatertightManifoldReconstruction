@@ -18,15 +18,20 @@ center = np.array([1, 1, 1]) / 2.0
 
 class Grid:
 
-    def __init__(self, points=[], resolution=0):
+    # def __init__(self, points=[], resolution=0):
+    #     self.voxel_size = 0
+    #     if points and resolution != 0:
+    #         self.resolution = resolution
+    #         self.make_grid(points, resolution)
+    #     else:
+    #         self.resolution = 0
+    #         self.points = np.array([np.empty(3)], dtype=int)
+    #         self.voxels = np.array([np.empty(3)], dtype=int)
+    def __init__(self):
         self.voxel_size = 0
-        if points and resolution != 0:
-            self.resolution = resolution
-            self.make_grid(points, resolution)
-        else:
-            self.resolution = 0
-            self.points = np.array([np.empty(3)], dtype=int)
-            self.voxels = np.array([np.empty(3)], dtype=int)
+        self.points = []
+        self.resolution = 0
+        self.voxels = []
 
     def make_grid_from_file(self, file, resolution):
         plydata = plyfile.PlyData.read(file)
@@ -62,9 +67,9 @@ class Grid:
     def insert_point(self, p):
         # remark: the points should be stored somewhere I put a array to store them, you can change it to a different
         # container
-        voxel = np.array([d // self.voxel_size for d in p], dtype=int)
-        self.voxels = np.append(self.voxels, [voxel], axis=0)
-        self.points = np.append(self.points, [np.array(p)], axis=0)
+        voxel = [d // self.voxel_size for d in p]
+        self.voxels.append(voxel)
+        self.points.append(p)
         return voxel
 
     def get_valid_neighbors(self, vi):
@@ -93,8 +98,8 @@ class Grid:
         return vi in self.voxels
 
     def set_occupied(self, vi):
-        self.voxels = np.append(self.voxels, [np.array(vi)], axis=0)
-        self.points = np.append(self.points, [[-1, -1, -1]], axis=0)
+        self.voxels.append(vi)
+        self.points.append([-1, -1, -1])
 
     # we avoid negative indexes therefore starting with 0 up to resolution
     # remark: not sure we need this, the resolution should be enough
