@@ -31,32 +31,43 @@ def flood_filling(x, y, z, grid, flooded=[]):
     return flooded
 
 
-def diffusion(v_crust, cur_phi):
-    new_phi = cur_phi.copy()
-    for voxel, value in cur_phi.items():
-        if not (v_crust.is_point(voxel) & value == 0):
+# def diffusion(v_crust, cur_phi):
+#     new_phi = cur_phi.copy()
+#     for voxel, value in cur_phi.items():
+#         if not (v_crust.is_point(voxel) & value == 0):
+#             neighbors = v_crust.get_valid_neighbors(voxel)
+#             neighbors = list(filter(neighbors, v_crust.is_occupied))
+#             new_phi[voxel] = (cur_phi[voxel] + sum([cur_phi[neighbor] for neighbor in neighbors])) / (
+#                         float(len(neighbors)) + 1.0)
+#     return new_phi
+def diffusion(v_crust):
+    new_phi = v_crust.phi.copy()
+    for voxel, value in v_crust.phi.items():
+        if value == 1:
             neighbors = v_crust.get_valid_neighbors(voxel)
-            neighbors = list(filter(neighbors, v_crust.is_occupied))
-            new_phi[voxel] = (cur_phi[voxel] + sum([cur_phi[neighbor] for neighbor in neighbors])) / (float(len(neighbors)) + 1.0)
-    return new_phi
+            neighbors = list(filter(v_crust.is_occupied, neighbors))
+            new_phi[tuple(voxel)] = (v_crust.phi[tuple(voxel)] + sum([v_crust.phi[tuple(neighbor)] for neighbor in neighbors])) / (float(len(neighbors)) + 1.0)
+    v_crust.phi = new_phi
 
 
 def dilation(v_crust):
-    dilated_voxels = []
-    new_v_crust = copy.deepcopy(v_crust)
-    for voxel in v_crust.get_voxels():
-        dilated_voxels = dilated_voxels + dilate_voxel(voxel, new_v_crust)
-    return new_v_crust, dilated_voxels
+    dilated_voxels = v_crust.voxels
+    # new_v_crust = copy.deepcopy(v_crust)
+    for voxel in v_crust.voxels:
+        dilated_voxels = dilated_voxels + dilate_voxel(voxel, v_crust)
+    v_crust.voxels = dilated_voxels
+    return
 
 
 def dilate_voxel(voxel, grid):
     dilated_voxels = []
     for neighbor in grid.get_valid_neighbors(voxel):
-        dilated_voxels.append(tuple(neighbor))
-        grid.set_occupied(neighbor)
+        dilated_voxels.append(neighbor)
+        grid.phi[tuple(neighbor)] = 1
+        # grid.set_occupied(neighbor)
     return dilated_voxels
 
-
+# can be moved to grid initialization and dilation steps
 def initial_phi(grid):
     phi = {}
     for voxel in grid.get_voxels():

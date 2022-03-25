@@ -32,6 +32,7 @@ class Grid:
         self.points = []
         self.resolution = 0
         self.voxels = []
+        self.phi = {}
 
     def make_grid_from_file(self, file, resolution):
         plydata = plyfile.PlyData.read(file)
@@ -44,7 +45,7 @@ class Grid:
     def make_grid(self, points, resolution):
         self.resolution = resolution
         max_coord = np.max(points)
-        self.voxel_size = max_coord / self.resolution
+        self.voxel_size = max_coord / (self.resolution - 1)
         for p in points:
             self.insert_point(p)
 
@@ -70,6 +71,7 @@ class Grid:
         voxel = [d // self.voxel_size for d in p]
         self.voxels.append(voxel)
         self.points.append(p)
+        self.phi[tuple(voxel)] = 0
         return voxel
 
     def get_valid_neighbors(self, vi):
@@ -81,7 +83,7 @@ class Grid:
     # the input is the voxel index return a list of indexes
     @staticmethod
     def get_neighbors(vi):
-        return np.array([vi + direction for direction in neighbors])
+        return [vi + direction for direction in neighbors]
 
     def is_valid(self, v):
         return np.logical_and.reduce([0 <= x < self.resolution for x in v])
@@ -95,7 +97,10 @@ class Grid:
         return True
 
     def is_occupied(self, vi):
-        return vi in self.voxels
+        for v in self.voxels:
+            if all(v == vi):
+                return True
+        return False
 
     def set_occupied(self, vi):
         self.voxels.append(vi)
