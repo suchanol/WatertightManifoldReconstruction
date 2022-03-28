@@ -29,7 +29,9 @@ GridUtils.dilation(grid)
 GridUtils.diffusion(grid)
 print(grid.voxels)
 print(grid.phi)
-#TODO check the flooding
+#TODO
+# check the flooding
+# random sample the sphere
 graph = SurfaceExtraction.generate_graph(grid, grid.phi, [], [])
 nx.draw(graph, with_labels=True, font_weight='bold')
 # nx.draw(graph)
