@@ -24,13 +24,15 @@ print(grid.voxels)
 # print(voxel)
 # init_phi = GridUtils.initial_phi(grid)
 GridUtils.dilation(grid)
+GridUtils.dilation(grid)
+GridUtils.dilation(grid)
 GridUtils.diffusion(grid)
 print(grid.voxels)
 print(grid.phi)
-#TODO check surface extraction
-
+#TODO check the flooding
 graph = SurfaceExtraction.generate_graph(grid, grid.phi, [], [])
 nx.draw(graph, with_labels=True, font_weight='bold')
+# nx.draw(graph)
 plt.show()
 # print(SurfaceExtraction.calc_s_opt(graph))
 # s_opt, cut_edges = SurfaceExtraction.calc_s_opt(graph)
