@@ -7,11 +7,14 @@ import SurfaceExtraction
 import networkx as nx
 import matplotlib.pyplot as plt
 
+ps = GridUtils.generate_random_points(1, 5)
+print(ps)
 grid = Grid.Grid()
+grid.make_grid(ps, 128)
 # grid.make_grid([np.array([0.5, 1.5, 1.5])], 128)
-grid.make_grid(points=[[0,1,1], [1,1,1], [0,0,0], [1,0,0]],resolution=128)
-print(grid.points)
-print(grid.voxels)
+# grid.make_grid(points=[[0,1,1], [1,1,1], [0,0,0], [1,0,0]],resolution=128)
+# print(grid.points)
+# print(grid.voxels)
 # print(grid.get_neighbors([0.0, 127.0, 127.0]))
 # print(grid.get_valid_neighbors([0.0, 127.0, 127.0]))
 # print(grid.get_valid_neighbors([127.0, 127.0, 127.0]))
@@ -23,15 +26,15 @@ print(grid.voxels)
 # print(new_grid.points)
 # print(voxel)
 # init_phi = GridUtils.initial_phi(grid)
-GridUtils.dilation(grid)
-GridUtils.dilation(grid)
-GridUtils.dilation(grid)
-GridUtils.diffusion(grid)
-print(grid.voxels)
-print(grid.phi)
+# GridUtils.dilation(grid)
+# GridUtils.dilation(grid)
+# GridUtils.dilation(grid)
+# GridUtils.diffusion(grid)
+# print(grid.voxels)
+# print(grid.phi)
 #TODO
 # check the flooding
-# random sample the sphere
+
 graph = SurfaceExtraction.generate_graph(grid, grid.phi, [], [])
 nx.draw(graph, with_labels=True, font_weight='bold')
 # nx.draw(graph)

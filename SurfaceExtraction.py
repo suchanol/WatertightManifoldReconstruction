@@ -14,7 +14,7 @@ def make_octahedral_subgraph(voxel, weight):
     #     G.add_node(tuple(voxel + center + direction * 0.5))
 
     for a, b in Grid.edges:
-        G.add_edge(tuple(voxel + center + a), tuple(voxel + center + b), capacity=weight)
+        G.add_edge(tuple(voxel + center + a*0.5), tuple(voxel + center + b*0.5), capacity=weight)
 
     return G
 

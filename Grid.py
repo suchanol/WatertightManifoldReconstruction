@@ -110,3 +110,6 @@ class Grid:
     # remark: not sure we need this, the resolution should be enough
     def get_bounds(self):
         return self.resolution * self.voxel_size
+
+    def remove_voxel(self, vi):
+        self.voxels.remove(vi)

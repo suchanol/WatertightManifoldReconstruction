@@ -3,6 +3,15 @@ import copy
 import math
 import itertools
 import numpy as np
+import random as random
+
+
+def generate_random_points(r, npoints, ndim=3):
+    vec = np.random.randn(ndim, npoints)
+    vec /= np.linalg.norm(vec, axis=0)
+    vec *= r
+    vec_array = np.array(vec)
+    return vec_array.transpose()
 
 
 def refine_grid(grid, new_resolution):
@@ -46,7 +55,8 @@ def diffusion(v_crust):
         if value == 1:
             neighbors = v_crust.get_valid_neighbors(voxel)
             neighbors = list(filter(v_crust.is_occupied, neighbors))
-            new_phi[tuple(voxel)] = (v_crust.phi[tuple(voxel)] + sum([v_crust.phi[tuple(neighbor)] for neighbor in neighbors])) / (float(len(neighbors)) + 1.0)
+            new_phi[tuple(voxel)] = (v_crust.phi[tuple(voxel)] + sum(
+                [v_crust.phi[tuple(neighbor)] for neighbor in neighbors])) / (float(len(neighbors)) + 1.0)
     v_crust.phi = new_phi
 
 
@@ -67,6 +77,7 @@ def dilate_voxel(voxel, grid):
         # grid.set_occupied(neighbor)
     return dilated_voxels
 
+
 # can be moved to grid initialization and dilation steps
 def initial_phi(grid):
     phi = {}
@@ -76,3 +87,9 @@ def initial_phi(grid):
         else:
             phi[tuple(voxel)] = 1
     return phi
+
+
+# TODO
+# remove the voxels that do not contain target surface (not in S_opt) for the next iteration (refinement)
+def remove_voxels():
+    return
