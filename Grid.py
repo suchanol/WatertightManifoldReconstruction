@@ -45,9 +45,10 @@ class Grid:
     def make_grid(self, points, resolution):
         self.resolution = resolution
         max_coord = np.max(points)
-        self.voxel_size = max_coord / (self.resolution - 1)
+        min_coord = np.min(points)
+        self.voxel_size = (max_coord - min_coord) / (self.resolution - 1)
         for p in points:
-            self.insert_point(p)
+            self.insert_point(p, min_coord, max_coord)
 
     def get_voxel_center(self, v):
         return v * self.voxel_size + np.ones((3, 1)) * self.voxel_size / 2.0
@@ -61,14 +62,18 @@ class Grid:
     def get_points(self):
         return self.points
 
+    # normalize the coordinate to get rid of negative numbers so that the voxel index can be calculated
+    def normalize_coordinate(self, p, min, max):
+        return p + np.absolute(min)
     # p = (x,y,z)
     # divide the x y z by the dimension of the voxel cube, the rounded down number indicates the indices
     # of the voxel containing the points in a 3d matrix
     # return the index of the voxel
-    def insert_point(self, p):
+    def insert_point(self, p, min, max):
         # remark: the points should be stored somewhere I put a array to store them, you can change it to a different
         # container
-        voxel = [d // self.voxel_size for d in p]
+        norm_p = self.normalize_coordinate(p, min, max)
+        voxel = [d // self.voxel_size for d in norm_p]
         self.voxels.append(voxel)
         self.points.append(p)
         self.phi[tuple(voxel)] = 0
