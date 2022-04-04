@@ -57,14 +57,12 @@ class Grid:
     #     return np.unique(self.voxels, axis=0)
 
     def get_voxel(self, p):
-        return (d // self.voxel_size for d in p)
+        norm_p = p + np.absolute(min)
+        return (d // self.voxel_size for d in norm_p)
 
     def get_points(self):
         return self.points
 
-    # normalize the coordinate to get rid of negative numbers so that the voxel index can be calculated
-    def normalize_coordinate(self, p, min, max):
-        return p + np.absolute(min)
     # p = (x,y,z)
     # divide the x y z by the dimension of the voxel cube, the rounded down number indicates the indices
     # of the voxel containing the points in a 3d matrix
@@ -72,7 +70,7 @@ class Grid:
     def insert_point(self, p, min, max):
         # remark: the points should be stored somewhere I put a array to store them, you can change it to a different
         # container
-        norm_p = self.normalize_coordinate(p, min, max)
+        norm_p = p + np.absolute(min)
         voxel = [d // self.voxel_size for d in norm_p]
         self.voxels.append(voxel)
         self.points.append(p)
