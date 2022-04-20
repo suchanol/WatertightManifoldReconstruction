@@ -101,7 +101,7 @@ class Grid:
 
     def is_occupied(self, vi):
         for v in self.voxels:
-            if all(v == vi):
+            if (v == vi).all:
                 return True
         return False
 
