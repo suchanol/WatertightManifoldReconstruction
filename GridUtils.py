@@ -55,12 +55,14 @@ def refine_grid(grid, new_resolution):
 
 
 def flood_filling(x, y, z, grid, flooded=[]):
-    if not grid.is_occupied(x, y, z) and (x, y, z) not in flooded:
-        flooded = flooded + [(x, y, z)]
-        neighbors = grid.get_neighbors((x, y, z))
+    start = [x,y,z]
+    print(start)
+    if not grid.is_occupied(start) and start not in flooded:
+        flooded = flooded + start
+        neighbors = grid.get_neighbors(start)
         neighbors = list(filter(lambda v: np.logical_and.reduce([-1 <= x <= grid.resolution for x in v]), neighbors))
         for neighbor in neighbors:
-            flooded = flooded + flood_filling(neighbor, grid, flooded)
+            flooded = flooded + flood_filling(*neighbor, grid, flooded)
     return flooded
 
 
