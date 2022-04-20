@@ -6,6 +6,30 @@ import numpy as np
 import random as random
 
 
+def get_lower_bounds_on_components(grid):
+    # start flood filling from out of V to extract V_ext
+    V_ext = flood_filling(-1, -1, -1, grid)
+    V_ext = set(filter(grid.is_valid, V_ext))
+
+    # get the current dilated voxels
+    V_crust = set(grid.voxels)
+
+    # get the whole Volume
+    V = set(itertools.product(range(grid.resolution), range(grid.resolution), range(grid.resolution)))
+
+    # calculate the set difference to get one voxel that doesn't lie in V_crust nor in V_ext
+    voxel = next(iter(set(V).difference(V_ext.union(V_crust))), None)
+    V_int1 = None
+    if voxel is not None:
+        V_int1 = flood_filling(*voxel, grid)
+
+    lower_bound = 1
+    if len(V_ext) + len(V_crust) + len(V_int1) < grid.resolution**3:
+        lower_bound = 2
+
+    return lower_bound, V_ext, V_int1
+
+
 def generate_random_points(r, npoints, ndim=3):
     vec = np.random.randn(ndim, npoints)
     vec /= np.linalg.norm(vec, axis=0)
