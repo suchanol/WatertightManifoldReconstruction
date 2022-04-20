@@ -12,7 +12,7 @@ def get_lower_bounds_on_components(grid):
     V_ext = set(filter(grid.is_valid, V_ext))
 
     # get the current dilated voxels
-    V_crust = set(grid.voxels)
+    V_crust = set(map(tuple, grid.voxels))
 
     # get the whole Volume
     V = set(itertools.product(range(grid.resolution), range(grid.resolution), range(grid.resolution)))
@@ -54,15 +54,29 @@ def refine_grid(grid, new_resolution):
     return new_grid
 
 
-def flood_filling(x, y, z, grid, flooded=[]):
+"""def flood_filling(x, y, z, grid, flooded=[]):
     start = [x,y,z]
     print(start)
     if not grid.is_occupied(start) and start not in flooded:
-        flooded = flooded + start
+        flooded = flooded + [start]
         neighbors = grid.get_neighbors(start)
         neighbors = list(filter(lambda v: np.logical_and.reduce([-1 <= x <= grid.resolution for x in v]), neighbors))
         for neighbor in neighbors:
-            flooded = flooded + flood_filling(*neighbor, grid, flooded)
+            flooded = flooded + [flood_filling(*neighbor, grid, flooded)]
+    return flooded"""
+
+def flood_filling(x, y, z, grid):
+    start = (x,y,z)
+    flooded = []
+    stack = []
+    stack.append(start)
+    while len(stack) > 0:
+        cur_voxel = tuple(stack.pop())
+        if cur_voxel not in flooded and not grid.is_occupied(cur_voxel):
+            flooded.append(cur_voxel)
+            neighbors = grid.get_neighbors(start)
+            neighbors = list(filter(lambda v: np.logical_and.reduce([-1 <= x <= grid.resolution for x in v]), neighbors))
+            stack += neighbors
     return flooded
 
 

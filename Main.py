@@ -33,6 +33,9 @@ print(grid.voxels)
 #TODO
 # check the flooding
 
+print(GridUtils.get_lower_bounds_on_components(grid))
+
+input()
 graph = SurfaceExtraction.generate_graph(grid, grid.phi, [], [])
 nx.draw(graph, with_labels=True, font_weight='bold')
 # nx.draw(graph)
