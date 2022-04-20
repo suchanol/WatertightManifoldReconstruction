@@ -19,7 +19,7 @@ def get_lower_bounds_on_components(grid):
 
     # calculate the set difference to get one voxel that doesn't lie in V_crust nor in V_ext
     voxel = next(iter(set(V).difference(V_ext.union(V_crust))), None)
-    V_int1 = None
+    V_int1 = set()
     if voxel is not None:
         V_int1 = flood_filling(*voxel, grid)
 
