@@ -7,11 +7,11 @@ import SurfaceExtraction
 import networkx as nx
 import matplotlib.pyplot as plt
 
-ps = GridUtils.generate_random_points(1, 5)
+ps = GridUtils.generate_random_points(1, 80)
 grid = Grid.Grid()
-# grid.make_grid(ps, resolution=128)
+grid.make_grid(ps, resolution=64)
 # grid.make_grid([np.array([0.5, 1.5, 1.5])], 128)
-grid.make_grid(points=[[0,0.5,1], [-2,-1,1], [0,0,0], [1,0,0]],resolution=128)
+# grid.make_grid(points=[[0,0.5,1], [-2,-1,1], [0,0,0], [1,0,0]],resolution=128)
 print(grid.points)
 print(grid.voxels)
 # print(grid.get_neighbors([0.0, 127.0, 127.0]))
@@ -30,16 +30,17 @@ GridUtils.dilation(grid)
 GridUtils.diffusion(grid)
 print(grid.voxels)
 # print(grid.phi)
-#TODO
-# check the flooding
-
-print(GridUtils.get_lower_bounds_on_components(grid))
-
-input()
-graph = SurfaceExtraction.generate_graph(grid, grid.phi, [], [])
-nx.draw(graph, with_labels=True, font_weight='bold')
+lower_bound, V_ext, V_int = GridUtils.get_lower_bounds_on_components(grid)
+print("lower_bound:")
+print(lower_bound)
+print("V_ext:")
+print(V_ext)
+print("V_int")
+print(V_int)
+# graph = SurfaceExtraction.generate_graph(grid, grid.phi, [], [])
+# nx.draw(graph, with_labels=True, font_weight='bold')
 # nx.draw(graph)
-plt.show()
+# plt.show()
 # print(SurfaceExtraction.calc_s_opt(graph))
 # s_opt, cut_edges = SurfaceExtraction.calc_s_opt(graph)
 # print(s_opt)

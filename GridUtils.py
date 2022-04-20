@@ -16,7 +16,6 @@ def get_lower_bounds_on_components(grid):
 
     # get the whole Volume
     V = set(itertools.product(range(grid.resolution), range(grid.resolution), range(grid.resolution)))
-
     # calculate the set difference to get one voxel that doesn't lie in V_crust nor in V_ext
     voxel = next(iter(set(V).difference(V_ext.union(V_crust))), None)
     V_int1 = set()
@@ -24,7 +23,7 @@ def get_lower_bounds_on_components(grid):
         V_int1 = flood_filling(*voxel, grid)
 
     lower_bound = 1
-    if len(V_ext) + len(V_crust) + len(V_int1) < grid.resolution**3:
+    if len(V_ext) + len(V_crust) + len(V_int1) < grid.resolution ** 3:
         lower_bound = 2
 
     return lower_bound, V_ext, V_int1
@@ -65,8 +64,9 @@ def refine_grid(grid, new_resolution):
             flooded = flooded + [flood_filling(*neighbor, grid, flooded)]
     return flooded"""
 
+
 def flood_filling(x, y, z, grid):
-    start = (x,y,z)
+    start = (x, y, z)
     flooded = []
     stack = []
     stack.append(start)
@@ -74,8 +74,9 @@ def flood_filling(x, y, z, grid):
         cur_voxel = tuple(stack.pop())
         if cur_voxel not in flooded and not grid.is_occupied(cur_voxel):
             flooded.append(cur_voxel)
-            neighbors = grid.get_neighbors(start)
-            neighbors = list(filter(lambda v: np.logical_and.reduce([-1 <= x <= grid.resolution for x in v]), neighbors))
+            neighbors = grid.get_neighbors(cur_voxel)
+            neighbors = list(
+                filter(lambda v: np.logical_and.reduce([-1 <= x <= grid.resolution for x in v]), neighbors))
             stack += neighbors
     return flooded
 
