@@ -5,7 +5,11 @@ import itertools
 import numpy as np
 import random as random
 
-
+def if_voxel_in_list(list, v):
+    for e in list:
+        if e[0]==v[0] and e[1]==v[1] and e[2]==v[2]:
+            return True
+    return False
 def get_lower_bounds_on_components(grid):
     # start flood filling from out of V to extract V_ext
     V_ext = flood_filling(-1, -1, -1, grid)
