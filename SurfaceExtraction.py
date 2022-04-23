@@ -51,9 +51,9 @@ def generate_graph(v_crust, phi, v_int, v_ext, s=4, a=10 ** (-5)):
         for direction in Grid.neighbors:
             face = voxel + direction
             if if_voxel_in_list(v_ext, face) or not v_crust.is_valid(face):
-                G.add_edge("sink", tuple(voxel + center + direction * 0.5), capacity=weight)
+                G.add_edge("sink", tuple(voxel + center + direction * 0.5), capacity=2)
             if if_voxel_in_list(v_int, face):
-                G.add_edge("source", tuple(voxel + center + direction * 0.5), capacity=weight)
+                G.add_edge("source", tuple(voxel + center + direction * 0.5), capacity=2)
     return G
 
 
@@ -64,6 +64,7 @@ def calc_s_opt(graph):
     for u, nbrs in ((n, graph[n]) for n in reachable):
         cutset.update((u, v) for v in nbrs if v in non_reachable)
     S_opt = set()
+    print(cutset)
     for cutted_edge in cutset:
         for a, b in Grid.edges:
             if np.array_equal(np.array(cutted_edge[0]) - a * 0.5, np.array(cutted_edge[1]) - b * 0.5):
