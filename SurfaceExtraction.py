@@ -64,10 +64,11 @@ def calc_s_opt(graph):
     for u, nbrs in ((n, graph[n]) for n in reachable):
         cutset.update((u, v) for v in nbrs if v in non_reachable)
     S_opt = set()
-    print(cutset)
     for cutted_edge in cutset:
         for a, b in Grid.edges:
             if np.array_equal(np.array(cutted_edge[0]) - a * 0.5, np.array(cutted_edge[1]) - b * 0.5):
-                S_opt.update(np.array(cutted_edge[0]) - a * 0.5 - center)
+                voxel = cutted_edge[0] - a * 0.5 - center
+                # S_opt.update(np.array(cutted_edge[0]) - a * 0.5 - center) here update will breack the structure add is needed
+                S_opt.add((voxel[0], voxel[1], voxel[2]))
                 break
     return S_opt, cutset
