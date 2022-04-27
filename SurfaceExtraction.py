@@ -66,9 +66,20 @@ def calc_s_opt(graph):
     S_opt = set()
     for cutted_edge in cutset:
         for a, b in Grid.edges:
+            # TODO: quite ugly to read; how to improve?
+            # first check if edge (a, b) gives the same voxel center
             if np.array_equal(np.array(cutted_edge[0]) - a * 0.5, np.array(cutted_edge[1]) - b * 0.5):
                 voxel = cutted_edge[0] - a * 0.5 - center
-                # S_opt.update(np.array(cutted_edge[0]) - a * 0.5 - center) here update will breack the structure add is needed
-                S_opt.add((voxel[0], voxel[1], voxel[2]))
+                if not np.array_equal(voxel.astype(int), voxel):
+                    continue
+                S_opt.add(tuple(voxel))
+                break
+
+            # if it doesn't hold for edge (a, b), check for edge (b, a)
+            if np.array_equal(np.array(cutted_edge[0]) - b * 0.5, np.array(cutted_edge[1]) - a * 0.5):
+                voxel = cutted_edge[0] - b * 0.5 - center
+                if not np.array_equal(voxel.astype(int), voxel):
+                    continue
+                S_opt.add(tuple(voxel))
                 break
     return S_opt, cutset
