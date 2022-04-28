@@ -1,6 +1,7 @@
 import Grid
 import numpy as np
 import pymesh
+import GridUtils
 
 block = np.array([
     Grid.right,
@@ -41,7 +42,7 @@ def extract_mesh(s_opt, cut_edges, grid):
         v = first_voxel
         vertices.update(v)
         it = iter(adj_cut_edges)
-        e = next(it)
+        # e = next(it)
         f = next(it)
         while True:
             # f = next(it)
@@ -49,9 +50,9 @@ def extract_mesh(s_opt, cut_edges, grid):
             #    f = next(it)
             print('v: {v}'.format(v=v))
             print('f: {f}'.format(f=f))
-            w = get_neighbor_voxel(v, f, block_center)
+            w = get_neighbor_voxel(v, f, block_center,s_opt)
             print('w: {w}'.format(w=w))
-            edges.update((v, tuple(w)))
+            edges.update((tuple(v), tuple(w)))
             vertices.update(tuple(w))
 
             v = w
@@ -116,14 +117,21 @@ def get_index(array, elem):
     return np.where(np.all(array == elem, axis=1))[0]
 
 
-def get_neighbor_voxel(v, edge, center):
+def get_neighbor_voxel(v, edge, center, s_opt):
     a, b = edge
     center_norm = center / np.linalg.norm(center)
     # vec = (b - (v + Grid.center)) - (a - (v + Grid.center))
+    # check a - b
     vec = np.array(a) - np.array(b)
     vec = sign(np.dot(center_norm, vec)) * vec
     # vec = vec / np.linalg.norm(vec)
-    return v + vec*2
+    voxel = v + vec*2
+    #if a - b does not work check b - a
+    if not GridUtils.if_voxel_in_list(s_opt, voxel):
+        vec = np.array(b) - np.array(a)
+        vec = sign(np.dot(center_norm, vec)) * vec
+        voxel = v +vec*2
+    return voxel
 
 
 def intersect_edges(cut_edges, adj_edges):
