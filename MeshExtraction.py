@@ -42,11 +42,15 @@ def extract_mesh(s_opt, cut_edges, grid):
         vertices.update(v)
         it = iter(adj_cut_edges)
         e = next(it)
+        f = next(it)
         while True:
-            f = next(it)
-            #if f == e:
+            # f = next(it)
+            # if f == e:
             #    f = next(it)
+            print('v: {v}'.format(v=v))
+            print('f: {f}'.format(f=f))
             w = get_neighbor_voxel(v, f, block_center)
+            print('w: {w}'.format(w=w))
             edges.update((v, tuple(w)))
             vertices.update(tuple(w))
 
@@ -116,10 +120,10 @@ def get_neighbor_voxel(v, edge, center):
     a, b = edge
     center_norm = center / np.linalg.norm(center)
     # vec = (b - (v + Grid.center)) - (a - (v + Grid.center))
-    vec = np.array(b) - np.array(a)
+    vec = np.array(a) - np.array(b)
     vec = sign(np.dot(center_norm, vec)) * vec
-    vec = vec / np.linalg.norm(vec)
-    return v + vec
+    # vec = vec / np.linalg.norm(vec)
+    return v + vec*2
 
 
 def intersect_edges(cut_edges, adj_edges):
