@@ -3,6 +3,7 @@ import numpy as np
 import pymesh
 import GridUtils
 
+
 block = np.array([
     Grid.right,
     Grid.back,
@@ -37,10 +38,11 @@ def extract_mesh(s_opt, cut_edges, grid):
             break
         adj_edges = get_center_adjacent_edges(first_voxel, block_center)
         adj_cut_edges = intersect_edges(cut_edges, adj_edges)
-
+        if len(adj_cut_edges) <= 0:
+            continue
         # get first cut adj edge;
         v = first_voxel
-        vertices.update(v)
+        vertices.add(v)
         it = iter(adj_cut_edges)
         # e = next(it)
         f = next(it)
@@ -53,7 +55,7 @@ def extract_mesh(s_opt, cut_edges, grid):
             w = get_neighbor_voxel(v, f, block_center,s_opt)
             print('w: {w}'.format(w=w))
             edges.update((tuple(v), tuple(w)))
-            vertices.update(tuple(w))
+            vertices.add(tuple(w))
 
             v = w
             e = f
@@ -65,8 +67,8 @@ def extract_mesh(s_opt, cut_edges, grid):
             adj_cut_edges = intersect_edges(cut_edges, adj_edges)
             it = iter(adj_cut_edges)
 
-    vertices = np.array(vertices)
-    edges = np.array([[get_index(vertices, list(edge)[0]), get_index(vertices, list(edge)[1])] for edge in edges])
+    vertices = np.array(list(vertices))
+    edges = np.array([[get_index(vertices, list(edge)), get_index(vertices, list(edge))] for edge in edges])
     vertices = np.array(map(grid.get_voxel_center, vertices))
     return pymesh.wires.WireNetwork.create_from_data(vertices, edges)
 
@@ -114,7 +116,7 @@ def extract_mesh(s_opt, cut_edges, grid):
 
 
 def get_index(array, elem):
-    return np.where(np.all(array == elem, axis=1))[0]
+    return np.where(np.all(array == elem, axis=0))[0]
 
 
 def get_neighbor_voxel(v, edge, center, s_opt):
