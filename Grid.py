@@ -51,7 +51,7 @@ class Grid:
             self.insert_point(p, min_coord, max_coord)
 
     def get_voxel_center(self, v):
-        return v * self.voxel_size + np.ones((3, 1)) * self.voxel_size / 2.0
+        return v * self.voxel_size + self.voxel_size / 2.0
 
     # def get_voxels(self):
     #     return np.unique(self.voxels, axis=0)

@@ -46,6 +46,7 @@ s_opt, cut_edges = SurfaceExtraction.calc_s_opt(graph)
 # print(s_opt)
 # print(cut_edges)
 mesh = MeshExtraction.extract_mesh(s_opt, cut_edges, grid)
+mesh.write_to_file("debug.wire")
 # nx.draw(mesh)
 
 # grid = Grid.Grid()
