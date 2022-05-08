@@ -1,5 +1,5 @@
-import numpy as np
 import plyfile
+import numpy as np
 
 up = + np.array([0, 1, 0])  # up
 down = - np.array([0, 1, 0])  # down
@@ -7,32 +7,31 @@ front = + np.array([0, 0, 1])  # front
 back = - np.array([0, 0, 1])  # back
 right = + np.array([1, 0, 0])  # right
 left = - np.array([1, 0, 0])  # left
-neighbors = [up, down, front, back, right, left]
-edges = [(front, up), (front, down), (front, right), (front, left),
-         (right, back), (right, up), (right, down),
-         (left, up), (left, down), (left, back),
-         (back, up), (back, down)]
+neighbors = np.array([up, down, front, back, right, left])
+edges = np.array([[front, up], [front, down], [front, right], [front, left],
+         [right, back], [right, up], [right, down],
+         [left, up], [left, down], [left, back],
+         [back, up], [back, down]])
 
 center = np.array([1, 1, 1]) / 2.0
 
-
 class Grid:
 
-    # def __init__(self, points=[], resolution=0):
-    #     self.voxel_size = 0
-    #     if points and resolution != 0:
-    #         self.resolution = resolution
-    #         self.make_grid(points, resolution)
-    #     else:
-    #         self.resolution = 0
-    #         self.points = np.array([np.empty(3)], dtype=int)
-    #         self.voxels = np.array([np.empty(3)], dtype=int)
     def __init__(self):
+        self.points = np.array([])
+        self.voxels = np.array([])
+        self.phi = np.array([])
         self.voxel_size = 0
-        self.points = []
         self.resolution = 0
-        self.voxels = []
-        self.phi = {}
+        self.min_coord = 0
+
+    def change_grid(self, resolution, voxel_size, min_coord):
+        self.resolution = resolution
+        self.voxel_size = voxel_size
+        self.min_coord = min_coord
+
+        self.voxels = np.zeros([self.resolution] * 3, bool)
+        self.phi = np.zeros(self.voxels.shape)
 
     def make_grid_from_file(self, file, resolution):
         plydata = plyfile.PlyData.read(file)
@@ -40,79 +39,59 @@ class Grid:
         point_cloud[:, 0] = plydata['vertex'].data['x']
         point_cloud[:, 1] = plydata['vertex'].data['y']
         point_cloud[:, 2] = plydata['vertex'].data['z']
+        """
+        point_cloud = np.load(file)"""
         self.make_grid(point_cloud, resolution)
 
     def make_grid(self, points, resolution):
         self.resolution = resolution
         max_coord = np.max(points)
-        min_coord = np.min(points)
-        self.voxel_size = (max_coord - min_coord) / (self.resolution - 1)
-        for p in points:
-            self.insert_point(p, min_coord, max_coord)
+        self.min_coord = np.min(points)
+        self.voxel_size = (max_coord - self.min_coord) / (self.resolution - 1)
+        self.points = np.array([])
 
-    def get_voxel_center(self, v):
-        return v * self.voxel_size + self.voxel_size / 2.0
+        self.voxels = np.zeros([self.resolution] * 3, bool)
+        self.phi = np.zeros(self.voxels.shape)
+        self.insert_point(points)
 
-    # def get_voxels(self):
-    #     return np.unique(self.voxels, axis=0)
+    def insert_point(self, point):
+        if self.points.size == 0:
+            self.points = point.reshape((-1, 3))
+        else:
+            self.points = np.append(self.points, point, axis=-1)
 
-    def get_voxel(self, p):
-        norm_p = p + np.absolute(min)
-        return (d // self.voxel_size for d in norm_p)
+        voxel_indices = self.get_voxel(point)
+        self.voxels[tuple(voxel_indices.T)] = True
+        self.phi[tuple(voxel_indices.T)] = 0
 
-    def get_points(self):
-        return self.points
+    def get_voxel_center(self, voxel):
+        return voxel * self.voxel_size + self.voxel_size / 2.
 
-    # p = (x,y,z)
-    # divide the x y z by the dimension of the voxel cube, the rounded down number indicates the indices
-    # of the voxel containing the points in a 3d matrix
-    # return the index of the voxel
-    def insert_point(self, p, min, max):
-        # remark: the points should be stored somewhere I put a array to store them, you can change it to a different
-        # container
-        norm_p = p + np.absolute(min)
-        voxel = [d // self.voxel_size for d in norm_p]
-        self.voxels.append(voxel)
-        self.points.append(p)
-        self.phi[tuple(voxel)] = 0
-        return voxel
+    def get_voxel(self, point):
+        return ((point - self.min_coord) // self.voxel_size).astype(int)
 
-    def get_valid_neighbors(self, vi):
-        neighbors = list(filter(self.is_valid, self.get_neighbors(vi)))
-        return neighbors
+    def get_valid_neighbors(self, voxel):
+        all_neighbors = self.get_neighbors(voxel)
+        valid_neighbors = self.is_valid(all_neighbors)
+        return all_neighbors[valid_neighbors]
 
-    # (up, down, front, back, right, left)
-    # vi = (x, y, z)
-    # the input is the voxel index return a list of indexes
-    @staticmethod
-    def get_neighbors(vi):
-        return [vi + direction for direction in neighbors]
+    def get_neighbors(self, voxel):
+        return voxel.reshape((-1, 3))[:, np.newaxis] + neighbors
 
-    def is_valid(self, v):
-        return np.logical_and.reduce([0 <= x < self.resolution for x in v])
+    def is_valid(self, voxel):
+        return np.logical_and.reduce((0 <= voxel) & (voxel < self.resolution), axis=-1)
 
-    def is_point(self, vi):
-        if not self.is_occupied(tuple(vi)):
-            return False
-        itemindex = np.unique(np.where(self.voxels == vi)[0], axis=0)
-        if np.array_equal(np.unique(self.points[itemindex], axis=0), [[-1, -1, -1]]):
-            return False
-        return True
+    def is_occupied(self, voxel):
+        return self.voxels[tuple(voxel.T)] & True
 
-    def is_occupied(self, vi):
-        for v in self.voxels:
-            if v[0] == vi[0] and v[1] == vi[1] and v[2] == vi[2]:
-                return True
-        return False
+    def is_point(self, voxel):
+        return (self.get_voxel(self.points) == voxel[:, np.newaxis]).all(-1).any(1)
 
-    def set_occupied(self, vi):
-        self.voxels.append(vi)
-        self.points.append([-1, -1, -1])
+    def set_phi(self, voxel, value):
+        self.phi[tuple(voxel.T)] = value
 
-    # we avoid negative indexes therefore starting with 0 up to resolution
-    # remark: not sure we need this, the resolution should be enough
+    def set_occupied(self, voxel):
+        self.voxels[tuple(voxel.T)] = True
+
     def get_bounds(self):
         return self.resolution * self.voxel_size
-
-    def remove_voxel(self, vi):
-        self.voxels.remove(vi)

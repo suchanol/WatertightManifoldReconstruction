@@ -4,7 +4,7 @@ import pymesh
 import GridUtils
 
 
-block = np.array([
+"""block = np.array([
     Grid.right,
     Grid.back,
     Grid.back + Grid.right,
@@ -12,7 +12,7 @@ block = np.array([
     Grid.up + Grid.back,
     Grid.up + Grid.right,
     Grid.up + Grid.right + Grid.back
-])
+])"""
 
 
 def sign(x):
@@ -30,11 +30,13 @@ def extract_mesh(s_opt, cut_edges, grid):
     all_blocks = first_block[np.newaxis, :] + displacements[:, np.newaxis, :]
 
     valid_blocks = filter(lambda x: pred_intersect(s_opt, x), all_blocks)
+    #print(len(list(valid_blocks)))
 
     for block in valid_blocks:
         block_center = get_block_center(block)
         # get first voxel of current block; current block is always non-empty
-        for first_voxel in intersect_block(s_opt, block):
+        block_cut = intersect_block(s_opt, block)
+        for first_voxel in block_cut:
             break
         adj_edges = get_center_adjacent_edges(first_voxel, block_center)
         adj_cut_edges = intersect_edges(cut_edges, adj_edges)
@@ -50,10 +52,7 @@ def extract_mesh(s_opt, cut_edges, grid):
             # f = next(it)
             # if f == e:
             #    f = next(it)
-            print('v: {v}'.format(v=v))
-            print('f: {f}'.format(f=f))
-            w = get_neighbor_voxel(v, f, block_center,s_opt)
-            print('w: {w}'.format(w=w))
+            w = get_neighbor_voxel(v, f, block_cut, block_center)
             edges.add((tuple(v), tuple(w)))
             vertices.add(tuple(w))
 
@@ -69,71 +68,28 @@ def extract_mesh(s_opt, cut_edges, grid):
 
     vertices = np.array(list(vertices))
     edges = np.array([[get_index(vertices, a)[0], get_index(vertices, b)[0]] for (a, b) in edges])
-    vertices = np.array(list(map(grid.get_voxel_center, vertices)))
+    vertices = grid.get_voxel_center(vertices)
     return pymesh.wires.WireNetwork.create_from_data(vertices, edges)
-
-
-"""def extract_mesh(s_opt, cut_edges, grid):
-    vertices = set([])
-    edges = set([])
-
-    for voxel in s_opt:
-        blocks = filter(lambda x: pred_intersect(s_opt, x), get_blocks(voxel))
-        for b in blocks:
-            block_center = get_block_center(b)
-            # get first voxel of current block; current block is always non-empty
-            for first_voxel in b:
-                break
-            adj_edges = get_center_adjacent_edges(first_voxel, block_center)
-            adj_cut_edges = intersect_edges(cut_edges, adj_edges)
-            # get first cut adj edge;
-            v = first_voxel
-            vertices.update(tuple(v))
-            it = iter(adj_cut_edges)
-            e = next(it)
-            while True:
-                f = next(it)
-                if f == e:
-                    f = next(it)
-                w = get_neighbor_voxel(v, f, block_center)
-                edges.update(set((tuple(v), tuple(w))))
-                vertices.update(tuple(w))
-
-                v = w
-                e = f
-
-                if v == first_voxel:
-                    break
-
-                adj_edges = get_center_adjacent_edges(v, block_center)
-                adj_cut_edges = intersect_edges(cut_edges, adj_edges)
-                it = iter(adj_cut_edges)
-
-    vertices = np.array(vertices)
-    edges = np.array([[get_index(vertices, list(edge)[0]), get_index(vertices, list(edge)[1])] for edge in edges])
-    vertices = np.array(map(grid.get_voxel_center, vertices))
-    return pymesh.wires.WireNetwork.create_from_data(vertices, edges)"""
 
 
 def get_index(array, elem):
     return np.where(np.all(array == elem, axis=-1))[0]
 
 
-def get_neighbor_voxel(v, edge, center, s_opt):
-    a, b = edge
-    center_norm = center / np.linalg.norm(center)
-    # vec = (b - (v + Grid.center)) - (a - (v + Grid.center))
-    # check a - b
-    vec = np.array(a) - np.array(b)
-    vec = sign(np.dot(center_norm, vec)) * vec
-    # vec = vec / np.linalg.norm(vec)
-    voxel = v + vec*2
-    #if a - b does not work check b - a
-    if not GridUtils.if_voxel_in_list(s_opt, voxel):
-        vec = np.array(b) - np.array(a)
-        vec = sign(np.dot(center_norm, vec)) * vec
-        voxel = v +vec*2
-    return voxel
+def get_neighbor_voxel(v, edge, block, block_center):
+    block_cp = np.array(list(map(np.array, block.copy())))
+    equals_v = (block_cp == v).all(1)
+    block_wo_v = block_cp[~equals_v]
+
+    edges_v = get_natural_center_edges(v, block_center)
+    block_edges = map(lambda x: get_natural_center_edges(x, block_center), block_wo_v)
+
+    for i, cur_block in enumerate(block_edges):
+        for cur_edge in cur_block:
+            if cur_edge in edges_v:
+                return block_wo_v[i]
+
+    return v
 
 
 def intersect_edges(cut_edges, adj_edges):
@@ -143,10 +99,18 @@ def intersect_edges(cut_edges, adj_edges):
             filtered_edges.append((a, b))
     return filtered_edges
 
+def get_natural_center_edges(voxel, center):
+    midpoint = tuple(center)
+    vec = center - voxel
+    vec /= np.linalg.norm(vec)
+    x = tuple(center - sign(np.dot(vec, np.array([1, 0, 0]))) * np.array([1, 0, 0]))
+    y = tuple(center - sign(np.dot(vec, np.array([0, 1, 0]))) * np.array([0, 1, 0]))
+    z = tuple(center - sign(np.dot(vec, np.array([0, 0, 1]))) * np.array([0, 0, 1]))
+    return [(midpoint, x), (midpoint, y), (midpoint, z)]
 
 def get_center_adjacent_edges(voxel, center):
     voxel_center = voxel + Grid.center
-    vec = center - voxel
+    vec = center - voxel_center
     vec /= np.linalg.norm(vec)
     x = tuple(voxel_center + 0.5 * sign(np.dot(vec, np.array([1, 0, 0]))) * np.array([1, 0, 0]))
     y = tuple(voxel_center + 0.5 * sign(np.dot(vec, np.array([0, 1, 0]))) * np.array([0, 1, 0]))
@@ -155,7 +119,7 @@ def get_center_adjacent_edges(voxel, center):
 
 
 def get_block_center(b):
-    return sum([v + Grid.center for v in b]) / len(b)
+    return np.mean(b, axis=0) + Grid.center
 
 
 def intersect_block(s_opt, b):
@@ -164,17 +128,3 @@ def intersect_block(s_opt, b):
 def pred_intersect(s_opt, b):
     return len(intersect_block(s_opt, b)) >= 3
 
-
-def get_blocks(voxel):
-    blocks = set()
-    for i in [0, -1]:
-        x = np.array([i, 0, 0])
-        for j in [0, -1]:
-            y = np.array([0, j, 0])
-            for k in [0, -1]:
-                z = np.array([0, 0, k])
-                cur_block = set()
-                for direction in block:
-                    cur_block.update(tuple(voxel + x + y + z + direction))
-                blocks.update(cur_block)
-    return blocks
