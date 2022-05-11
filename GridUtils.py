@@ -2,15 +2,20 @@ import Grid
 import numpy as np
 from skimage.morphology import flood_fill
 
-def refine_grid(grid, new_resolution):
+def refine_S_opt_grid(old_grid, S_opt, new_resolution):
     new_grid = Grid.Grid()
-    new_grid.change_grid(new_resolution, grid.get_bounds() / new_resolution, grid.min_coord)
-
-    new_grid.insert_point(grid.points)
-
+    new_grid.change_grid(new_resolution, old_grid.get_bounds() / new_resolution, old_grid.min_coord)
+    new_grid.insert_point(old_grid.points)
+    for (i,j,k) in S_opt:
+        new_grid.set_occupied(np.array((2*i,2*j,2*k), dtype=int))
+        new_grid.set_occupied(np.array((2*i+1,2*j,2*k), dtype=int))
+        new_grid.set_occupied(np.array((2*i,2*j+1,2*k), dtype=int))
+        new_grid.set_occupied(np.array((2*i,2*j,2*k+1), dtype=int))
+        new_grid.set_occupied(np.array((2*i+1,2*j+1,2*k), dtype=int))
+        new_grid.set_occupied(np.array((2*i+1,2*j,2*k+1), dtype=int))
+        new_grid.set_occupied(np.array((2*i,2*j+1,2*k+1), dtype=int))
+        new_grid.set_occupied(np.array((2*i+1,2*j+1,2*k+1), dtype=int))
     return new_grid
-
-
 def dilation(v_crust):
     dilated_voxels = np.array(v_crust.voxels.nonzero()).T
     voxels_to_dilate = v_crust.get_valid_neighbors(dilated_voxels)
@@ -64,5 +69,17 @@ def get_lower_bounds_on_components(grid):
     lower_bound = 1
     if V[V == False].size > 0:
         lower_bound = 2
+    if len(V_int) <= 0:
+        lower_bound = 0
 
     return lower_bound, np.array(V_ext).T, np.array(V_int).T
+
+# the whole process from dilation, diffusion to flood filling to be used directly
+def dilation_process(v_crust):
+    while True:
+        dilation(v_crust)
+        diffusion(v_crust)
+        lower_bound, V_ext, V_int = get_lower_bounds_on_components(v_crust)
+        if lower_bound > 0:
+            break
+    return lower_bound, V_ext, V_int
