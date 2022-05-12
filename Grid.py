@@ -24,11 +24,12 @@ class Grid:
         self.voxel_size = 0
         self.resolution = 0
         self.min_coord = 0
+        self.center = np.array([])
 
-    def change_grid(self, resolution, voxel_size, min_coord):
+    def change_grid(self, resolution, voxel_size,  center):
         self.resolution = resolution
         self.voxel_size = voxel_size
-        self.min_coord = min_coord
+        self.center = center
 
         self.voxels = np.zeros([self.resolution] * 3, bool)
         self.phi = np.zeros(self.voxels.shape)
@@ -45,9 +46,11 @@ class Grid:
 
     def make_grid(self, points, resolution):
         self.resolution = resolution
+        bbox = [np.min(points, axis=0), np.max(points, axis=0)]
+        self.center = np.mean(bbox, axis=0)
         max_coord = np.max(points)
-        self.min_coord = np.min(points)
-        self.voxel_size = (max_coord - self.min_coord) / (self.resolution - 1)
+        min_coord = np.min(points)
+        self.voxel_size = (max_coord - min_coord) / self.resolution
         self.points = np.array([])
 
         self.voxels = np.zeros([self.resolution] * 3, bool)
@@ -68,7 +71,7 @@ class Grid:
         return voxel * self.voxel_size + self.voxel_size / 2.
 
     def get_voxel(self, point):
-        return ((point - self.min_coord) // self.voxel_size).astype(int)
+        return((point - self.center + self.voxel_size * self.resolution / 2) // self.voxel_size).astype(int)
 
     def get_valid_neighbors(self, voxel):
         all_neighbors = self.get_neighbors(voxel)
@@ -92,6 +95,9 @@ class Grid:
 
     def set_occupied(self, voxel):
         self.voxels[tuple(voxel.T)] = True
+
+    def set_unoccupied(self, voxel):
+        self.voxels[tuple(voxel.T)] = False
 
     def get_bounds(self):
         return self.resolution * self.voxel_size

@@ -48,11 +48,15 @@ def extract_mesh(s_opt, cut_edges, grid):
         it = iter(adj_cut_edges)
         # e = next(it)
         f = next(it)
+        block_cp = np.array(list(map(np.array, block_cut.copy())))
         while True:
             # f = next(it)
             # if f == e:
             #    f = next(it)
-            w = get_neighbor_voxel(v, f, block_cut, block_center)
+            equals_v = (block_cp == v).all(-1)
+            block_cp = block_cp[~equals_v]
+            block_cut = block_cp
+            w = get_neighbor_voxel(v, f, block_cut, block_center, first_voxel)
             edges.add((tuple(v), tuple(w)))
             vertices.add(tuple(w))
 
@@ -69,6 +73,7 @@ def extract_mesh(s_opt, cut_edges, grid):
     vertices = np.array(list(vertices))
     edges = np.array([[get_index(vertices, a)[0], get_index(vertices, b)[0]] for (a, b) in edges])
     vertices = grid.get_voxel_center(vertices)
+
     return pymesh.wires.WireNetwork.create_from_data(vertices, edges)
 
 
@@ -76,20 +81,21 @@ def get_index(array, elem):
     return np.where(np.all(array == elem, axis=-1))[0]
 
 
-def get_neighbor_voxel(v, edge, block, block_center):
-    block_cp = np.array(list(map(np.array, block.copy())))
-    equals_v = (block_cp == v).all(1)
-    block_wo_v = block_cp[~equals_v]
+def get_neighbor_voxel(v, edge, block, block_center, first_voxel):
+    #block_cp = np.array(list(map(np.array, block.copy())))
+    #equals_v = (block_cp == v).all(1)
+    #block_wo_v = block_cp[~equals_v]
+    block_wo_v = block
 
     edges_v = get_natural_center_edges(v, block_center)
-    block_edges = map(lambda x: get_natural_center_edges(x, block_center), block_wo_v)
+    block_edges = list(map(lambda x: get_natural_center_edges(x, block_center), block_wo_v))
 
     for i, cur_block in enumerate(block_edges):
         for cur_edge in cur_block:
             if cur_edge in edges_v:
                 return block_wo_v[i]
 
-    return v
+    return first_voxel
 
 
 def intersect_edges(cut_edges, adj_edges):
@@ -128,3 +134,29 @@ def intersect_block(s_opt, b):
 def pred_intersect(s_opt, b):
     return len(intersect_block(s_opt, b)) >= 3
 
+def smoothing(grid, vertices, edges):
+    max_vert = vertices.shape[0]
+
+    A = np.zeros((max_vert, max_vert))
+    A[tuple(edges.T)] = 1
+
+    D = np.sum(A, axis=1)
+
+    valences = A.nonzero()
+    lambda_v = np.ones((max_vert, ))
+    lambda_v[valences[0]] += D[valences[1]]
+    lambda_v /= D
+    lambda_v += 1
+
+    D = np.diag(D / lambda_v)
+
+    L = np.identity(max_vert) - D @ A
+
+    new_vertices = L @ vertices
+
+    stopping_criterion = np.linalg.norm(new_vertices - vertices, axis=1)  \
+        < grid.voxel_size * (grid.phi[tuple(vertices.astype(int).T)] + 1)
+
+    new_vertices[stopping_criterion] = vertices[stopping_criterion]
+    mesh = pymesh.wires.WireNetwork.create_from_data(new_vertices, edges)
+    mesh.write_to_file("new_lap.obj")
