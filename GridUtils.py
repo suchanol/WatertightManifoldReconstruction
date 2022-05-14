@@ -15,6 +15,7 @@ def refine_S_opt_grid(old_grid, S_opt, new_resolution):
     S_opt_cp = as_array_of_arrays(S_opt.copy(), dtype=int)
 
     def refiner(x):
+        # return ((x * factor)[:, np.newaxis] + np.indices([factor] * 3).T.reshape((-1, 3))).reshape((-1, 3))
         return ((x * factor)[:, np.newaxis] + np.indices([factor] * 3).T.reshape((-1, 3))).reshape((-1, 3))
 
     indices = refiner(S_opt_cp)
@@ -22,8 +23,10 @@ def refine_S_opt_grid(old_grid, S_opt, new_resolution):
     dilation(new_grid, check=False)
     #new_grid.set_phi(indices, 1)
 
-    new_grid.set_occupied(refiner(np.array(old_grid.voxels.nonzero()).T))
-    dilation(new_grid, steps=3, check=False)
+    # I don't think you need to insert the old_grid.voxels to the new refinement, only s_opt is needed, this is the reason of iteration approach
+    # new_grid.set_occupied(refiner(np.array(old_grid.voxels.nonzero()).T))
+    # dilation(new_grid, steps=3, check=False)
+
     new_grid.insert_point(old_grid.points)
     #dilation(new_grid)
 
