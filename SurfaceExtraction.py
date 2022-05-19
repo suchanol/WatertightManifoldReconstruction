@@ -36,9 +36,10 @@ def generate_graph(v_crust, v_int, v_ext, s=4, a=10 ** (-5)):
 
     voxel_in_ext = np.isin(voxel_faces_tup, v_ext_tup)
     voxel_in_int = np.isin(voxel_faces_tup, v_int_tup)
+
     edges = (voxels[:, np.newaxis, :] + Grid.center + 0.5 * Grid.neighbors).reshape((-1, 3))
     ext_edges = [("sink", tuple(x)) for x in edges[voxel_in_ext]]
-    int_edges = [(tuple(x), "source") for x in edges[voxel_in_int]]
+    int_edges = [("source", tuple(x)) for x in edges[voxel_in_int]]
 
     G.add_edges_from(ext_edges)
     G.add_edges_from(int_edges)
@@ -61,6 +62,9 @@ def calc_s_opt(graph, V_int, V_ext):
     reachable, non_reachable = partition
     cutset = set()
     for u, nbrs in ((n, graph[n]) for n in reachable):
+        if u == 'source' or u == 'sink':
+            print([v for v in nbrs if v in non_reachable])
+            continue
         cutset.update((u, v) for v in nbrs if v in non_reachable)
     S_opt = set()
     for cutted_edge in cutset:
