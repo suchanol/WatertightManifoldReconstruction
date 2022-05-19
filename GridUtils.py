@@ -55,16 +55,18 @@ def dilation(v_crust, steps=1, check=True):
     for i in range(steps - 1):
         voxels_to_dilate = np.vstack((voxels_to_dilate, v_crust.get_valid_neighbors(voxels_to_dilate)))
     voxels_to_dilate = voxels_to_dilate[~v_crust.is_occupied(voxels_to_dilate)]
-    if check:
-        unoccupied_voxels = voxels_to_dilate[~v_crust.is_point(voxels_to_dilate)]
-        v_crust.set_phi(unoccupied_voxels, 1)
+    #if check:
+    #    unoccupied_voxels = voxels_to_dilate[~v_crust.is_point(voxels_to_dilate)]
+    #    v_crust.set_phi(unoccupied_voxels, 1)
     v_crust.set_occupied(voxels_to_dilate)
     return voxels_to_dilate
 
 
 def diffusion(v_crust, repeat=1):
     for i in range(repeat):
-        orig_voxels = np.array((v_crust.phi == 1).nonzero()).T
+        point_voxels = as_array_of_tuples(np.array((v_crust.phi == 0).nonzero()).T)
+        orig_voxels = as_array_of_tuples(np.array(v_crust.voxels.nonzero()).T)
+        orig_voxels = as_array_of_arrays(np.setdiff1d(orig_voxels, point_voxels))
         voxels = orig_voxels.copy()
         neighbors = v_crust.get_neighbors(voxels)
 
@@ -73,9 +75,8 @@ def diffusion(v_crust, repeat=1):
         valid[valid_indices] &= v_crust.is_occupied(neighbors[valid_indices])
         neighbors = neighbors[valid]
 
-        voxels = np.repeat(voxels, np.count_nonzero(valid, axis=1), axis=0)
-
         sizes = np.count_nonzero(valid, axis=1)
+        voxels = np.repeat(voxels, sizes, axis=0)
 
         v_crust.phi[tuple(voxels.T)] += v_crust.phi[tuple(neighbors.T)]
         v_crust.phi[tuple(orig_voxels.T)] /= sizes + 1
@@ -124,8 +125,8 @@ def get_components(grid, max_components=5):
 
     return lower_bound, V_ext, V_int"""
 
-def as_array_of_tuples(arr):
-    return np.array(list(map(tuple, arr)), dtype="i, i, i")
+def as_array_of_tuples(arr, type="i, i, i"):
+    return np.array(list(map(tuple, arr)), dtype=type)
 
 def as_array_of_arrays(arr, **kwargs):
     return np.array(list(map(list, arr)), **kwargs)

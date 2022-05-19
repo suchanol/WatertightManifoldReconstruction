@@ -32,7 +32,7 @@ class Grid:
         self.center = center
 
         self.voxels = np.zeros([self.resolution] * 3, bool)
-        self.phi = np.zeros(self.voxels.shape)
+        self.phi = np.ones(self.voxels.shape, float)
 
     def make_grid_from_file(self, file, resolution):
         plydata = plyfile.PlyData.read(file)
@@ -54,7 +54,7 @@ class Grid:
         self.points = np.array([])
 
         self.voxels = np.zeros([self.resolution] * 3, bool)
-        self.phi = np.zeros(self.voxels.shape)
+        self.phi = np.ones(self.voxels.shape, float)
         self.insert_point(points)
 
     def insert_point(self, point):
