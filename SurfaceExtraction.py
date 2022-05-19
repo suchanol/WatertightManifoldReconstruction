@@ -52,6 +52,8 @@ def calc_s_opt(graph):
     reachable, non_reachable = partition
     cutset = set()
     for u, nbrs in ((n, graph[n]) for n in reachable):
+        if u == 'source' or u == 'sink':
+            continue
         cutset.update((u, v) for v in nbrs if v in non_reachable)
     S_opt = set()
     for cutted_edge in cutset:
