@@ -1,4 +1,5 @@
 import itertools
+import sys
 
 from matplotlib import pyplot as plt
 
@@ -28,7 +29,7 @@ def refine_S_opt_grid(old_grid, S_opt, new_resolution):
     # dilation(new_grid, steps=3, check=False)
 
     new_grid.insert_point(old_grid.points)
-    #dilation(new_grid)
+    dilation(new_grid)
 
     return new_grid
 
