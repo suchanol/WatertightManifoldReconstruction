@@ -47,7 +47,7 @@ def refine_S_opt_grid(old_grid, S_opt, new_resolution):
 def undo_dilation(v_crust, dilated_voxels):
     unoccupied_voxels = dilated_voxels[~v_crust.is_point(dilated_voxels)]
     v_crust.set_unoccupied(unoccupied_voxels)
-    v_crust.set_phi(unoccupied_voxels, 0)
+    #v_crust.set_phi(unoccupied_voxels, 0)
 
 def dilation(v_crust, steps=1, check=True):
     dilated_voxels = np.array(v_crust.voxels.nonzero()).T
@@ -69,6 +69,9 @@ def diffusion(v_crust, repeat=1):
         orig_voxels = as_array_of_arrays(np.setdiff1d(orig_voxels, point_voxels))
         voxels = orig_voxels.copy()
         neighbors = v_crust.get_neighbors(voxels)
+
+        if len(voxels) == 0:
+            return
 
         valid = v_crust.is_valid(neighbors)
         valid_indices = np.where(valid)
