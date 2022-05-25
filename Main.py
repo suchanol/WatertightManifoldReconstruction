@@ -11,7 +11,7 @@ import MeshExtraction
 import SurfaceExtraction
 
 
-ManifoldReconstruction.reconstruct_manifold("bun_zipper_res3.ply")
+ManifoldReconstruction.reconstruct_manifold("bun_zipper_res2.ply")
 
 """grid = Grid.Grid()
 grid.make_grid_from_file("bun_zipper_res3.ply", 32)

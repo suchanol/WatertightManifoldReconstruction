@@ -22,14 +22,13 @@ def refine_S_opt_grid(old_grid, S_opt, new_resolution):
     indices = refiner(S_opt_cp)
     new_grid.set_occupied(indices)
     dilation(new_grid, check=False)
-    #new_grid.set_phi(indices, 1)
 
     # I don't think you need to insert the old_grid.voxels to the new refinement, only s_opt is needed, this is the reason of iteration approach
     # new_grid.set_occupied(refiner(np.array(old_grid.voxels.nonzero()).T))
     # dilation(new_grid, steps=3, check=False)
 
     new_grid.insert_point(old_grid.points)
-    dilation(new_grid)
+    # dilation(new_grid)
 
     return new_grid
 
@@ -64,6 +63,7 @@ def dilation(v_crust, steps=1, check=True):
 
 
 def diffusion(v_crust, repeat=1):
+    # np.set_printoptions(threshold=sys.maxsize, precision=3,linewidth=2000)
     for i in range(repeat):
         point_voxels = as_array_of_tuples(np.array((v_crust.phi == 0).nonzero()).T)
         orig_voxels = as_array_of_tuples(np.array(v_crust.voxels.nonzero()).T)
@@ -170,3 +170,80 @@ def plot_grid(voxels, resolution):
     ax.voxels(voxelarray, facecolors=colors, edgecolor='k')
 
     plt.show()
+def plot_dual_edges(edges, source, grid):
+    ax = plt.figure().add_subplot(projection='3d')
+    xs_0 = []
+    ys_0 = []
+    zs_0 = []
+    voxelarray = np.zeros([grid.resolution] * 3, dtype=bool)
+    voxelarray[grid.voxels] = True
+    ax.voxels(voxelarray, edgecolor='k', alpha=0)
+    for (a, b) in edges:
+            xs_0.append(source[0])
+            ys_0.append(source[1])
+            zs_0.append(source[2])
+            xs_0.append(b[0])
+            ys_0.append(b[1])
+            zs_0.append(b[2])
+            ax.plot(xs_0, ys_0, zs_0, color='red')
+            xs_0 = []
+            ys_0 = []
+            zs_0 = []
+    plot_grid(grid.voxels, grid.resolution)
+    plt.show()
+def plot_dual(edges, s=4, p=10**(-5)):
+    ax = plt.figure().add_subplot(projection='3d')
+    xs_0 = []
+    ys_0 = []
+    zs_0 = []
+    for (a,b,c) in edges:
+        weight = c['capacity'] - p
+        if weight <= 0:
+            xs_0.append(a[0])
+            ys_0.append(a[1])
+            zs_0.append(a[2])
+            xs_0.append(b[0])
+            ys_0.append(b[1])
+            zs_0.append(b[2])
+            ax.plot(xs_0, ys_0, zs_0, color='gray')
+        elif weight > 0 and weight <= 0.25 ** s:
+            xs_0.append(a[0])
+            ys_0.append(a[1])
+            zs_0.append(a[2])
+            xs_0.append(b[0])
+            ys_0.append(b[1])
+            zs_0.append(b[2])
+            ax.plot(xs_0, ys_0, zs_0, color='yellow')
+        elif weight > 0.25 ** 4 and weight <= 0.5 ** s:
+            xs_0.append(a[0])
+            ys_0.append(a[1])
+            zs_0.append(a[2])
+            xs_0.append(b[0])
+            ys_0.append(b[1])
+            zs_0.append(b[2])
+            ax.plot(xs_0, ys_0, zs_0, color='orange')
+        elif weight > 0.5 ** s and weight < 1:
+            xs_0.append(a[0])
+            ys_0.append(a[1])
+            zs_0.append(a[2])
+            xs_0.append(b[0])
+            ys_0.append(b[1])
+            zs_0.append(b[2])
+            ax.plot(xs_0, ys_0, zs_0, color='red')
+        else:
+            xs_0.append(a[0])
+            ys_0.append(a[1])
+            zs_0.append(a[2])
+            xs_0.append(b[0])
+            ys_0.append(b[1])
+            zs_0.append(b[2])
+            ax.plot(xs_0, ys_0, zs_0, color='blue')
+        xs_0 = []
+        ys_0 = []
+        zs_0 = []
+
+
+    plt.show()
+
+
+    return

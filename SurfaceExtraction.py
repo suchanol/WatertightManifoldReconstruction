@@ -2,7 +2,7 @@ import networkx as nx
 import Grid
 import numpy as np
 
-from GridUtils import as_array_of_tuples
+from GridUtils import as_array_of_tuples, plot_dual, plot_dual_edges
 
 
 def make_octahedral_subgraph(voxel, weight):
@@ -10,9 +10,7 @@ def make_octahedral_subgraph(voxel, weight):
 
     edges = ((voxel + Grid.center)[:, np.newaxis, np.newaxis] + 0.5 * Grid.edges).reshape((-1, 2, 3))
     edges = [(tuple(x[0]), tuple(x[1]), {'capacity': weight[i]}) for i,x in enumerate(edges)]
-
     G.add_edges_from(edges)
-
     return G
 
 
@@ -40,7 +38,6 @@ def generate_graph(v_crust, v_int, v_ext, s=4, a=10 ** (-5)):
     edges = (voxels[:, np.newaxis, :] + Grid.center + 0.5 * Grid.neighbors).reshape((-1, 3))
     ext_edges = [("sink", tuple(x)) for x in edges[voxel_in_ext]]
     int_edges = [("source", tuple(x)) for x in edges[voxel_in_int]]
-
     G.add_edges_from(ext_edges)
     G.add_edges_from(int_edges)
 
