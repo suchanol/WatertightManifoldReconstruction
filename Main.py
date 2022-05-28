@@ -1,17 +1,15 @@
-from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+import numpy
+import pymesh
 
-import Grid
-import numpy as np
-import networkx as nx
 
-import GridUtils
 import ManifoldReconstruction
-import MeshExtraction
-import SurfaceExtraction
-
-
 ManifoldReconstruction.reconstruct_manifold("bun_zipper_res2.ply")
+
+
+# faces = numpy.load('faces.npy', allow_pickle=True)
+# vertices = numpy.load('vertices.npy')
+# mesh = pymesh.form_mesh(vertices, faces)
+# pymesh.save_mesh("debug1.obj", mesh)
 
 """grid = Grid.Grid()
 grid.make_grid_from_file("bun_zipper_res3.ply", 32)
