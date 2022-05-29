@@ -1,11 +1,41 @@
+import sys
+
 import numpy as np
 
 import Grid
 
+def smoothing(grid, vertices, edges):
+    np.set_printoptions(threshold=sys.maxsize, precision=3, linewidth=2000)
+    max_vert = vertices.shape[0]
+
+    A = np.zeros((max_vert, max_vert))
+    A[tuple(edges.T)] = 1
+    b = np.array((edges.T[1],edges.T[0]))
+    A[tuple(b)] = 1
+
+
+    D = np.sum(A, axis=1)
+    lambda_v = (A @ D)/D + 1
+    lambda_v = np.diag(1/lambda_v)
+    D = np.diag(1 / D)
+    L = np.identity(max_vert) - D @ A
+    new_vertices = vertices - lambda_v @ (L @ (L @ vertices))
+    # new_vertices = vertices - (L @ (L @ vertices))
+
+
+
+    stopping_criterion = np.linalg.norm(new_vertices - vertices, axis=1)  \
+        < grid.voxel_size * (grid.phi[tuple(vertices.astype(int).T)] + 1)
+
+    for i,stop in enumerate(stopping_criterion):
+        if not stop:
+            new_vertices[i] = vertices[i]
+    np.save('vertices_smooth.npy', new_vertices)
 
 def extract_mesh(s_opt, cut_edges, grid):
     vertices = set([])
     faces = set([])
+    edges = set([])
     first_block = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0],
                             [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]])
     ranges = np.arange(grid.resolution - 1)
@@ -30,22 +60,23 @@ def extract_mesh(s_opt, cut_edges, grid):
 
         v = start_voxel
 
-        # remove the already found start voxel from the stack
-        voxel_in_block = remove_voxel_from_block(v, block)
-
         # first cut edges
         e = start_edge
         f = next_edge
         triangle = set([])
         triangle.add(tuple(start_voxel))
-        vertices.add(tuple(v))
+        # vertices.add(tuple(v))
         while (True):
             if f == start_edge:
                 break
             # find next voxel
             w = get_neighbor_voxel(v, f, block, block_center, cut_edges)
+            vertices.add(tuple(v))
             vertices.add(tuple(w))
             triangle.add(tuple(w))
+            edges.add((tuple(v), tuple(w)))
+            if tuple(w) != tuple(start_voxel):
+                edges.add((tuple(start_voxel), tuple(w)))
             if len(triangle)==3:
                 faces.add(tuple(triangle))
                 triangle = set([])
@@ -63,12 +94,14 @@ def extract_mesh(s_opt, cut_edges, grid):
                 f = normal_edge1
 
     vertices = np.array(list(vertices))
+    edges = np.array([[get_index(vertices, a)[0], get_index(vertices, b)[0]] for (a, b) in edges])
     faces = np.array(
         [[get_index(vertices, a)[0], get_index(vertices, b)[0], get_index(vertices, c)[0]] for (a, b, c) in faces])
     vertices = grid.get_voxel_center(vertices)
 
     np.save('vertices.npy', vertices)
     np.save('faces.npy', faces)
+    np.save('edges.npy', edges)
 def remove_voxel_from_block(voxel, block):
     result = set([])
     for (x,y,z) in block:
