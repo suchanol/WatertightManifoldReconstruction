@@ -30,7 +30,7 @@ def smoothing(grid, vertices, edges):
     for i,stop in enumerate(stopping_criterion):
         if not stop:
             new_vertices[i] = vertices[i]
-    np.save('vertices_smooth.npy', new_vertices)
+    np.save('samples/vertices_smooth.npy', new_vertices)
 
 def extract_mesh(s_opt, cut_edges, grid):
     vertices = set([])
@@ -99,9 +99,9 @@ def extract_mesh(s_opt, cut_edges, grid):
         [[get_index(vertices, a)[0], get_index(vertices, b)[0], get_index(vertices, c)[0]] for (a, b, c) in faces])
     vertices = grid.get_voxel_center(vertices)
 
-    np.save('vertices.npy', vertices)
-    np.save('faces.npy', faces)
-    np.save('edges.npy', edges)
+    np.save('samples/vertices.npy', vertices)
+    np.save('samples/faces.npy', faces)
+    np.save('samples/edges.npy', edges)
 def remove_voxel_from_block(voxel, block):
     result = set([])
     for (x,y,z) in block:

@@ -3,18 +3,18 @@ import pymesh
 
 #
 import ManifoldReconstruction
-ManifoldReconstruction.reconstruct_manifold("bun_zipper_res2.ply")
+ManifoldReconstruction.reconstruct_manifold("samples/bun_zipper_res2.ply")
 #
-faces = numpy.load('faces.npy', allow_pickle=True)
-vertices = numpy.load('vertices.npy')
-edges = numpy.load('edges.npy')
+faces = numpy.load('samples/faces.npy', allow_pickle=True)
+vertices = numpy.load('samples/vertices.npy')
+edges = numpy.load('samples/edges.npy')
 mesh = pymesh.form_mesh(vertices, faces)
-pymesh.save_mesh("debug_faces.obj", mesh)
+pymesh.save_mesh("samples/debug_faces.obj", mesh)
 mesh_wired = pymesh.wires.WireNetwork.create_from_data(vertices, edges)
-mesh_wired.write_to_file("debug_wired.obj")
-vertices_smooth = numpy.load('vertices_smooth.npy')
+mesh_wired.write_to_file("samples/debug_wired.obj")
+vertices_smooth = numpy.load('samples/vertices_smooth.npy')
 mesh_smooth = pymesh.form_mesh(vertices_smooth, faces)
-pymesh.save_mesh("debug_smooth.obj", mesh_smooth)
+pymesh.save_mesh("samples/debug_smooth.obj", mesh_smooth)
 
 """grid = Grid.Grid()
 grid.make_grid_from_file("bun_zipper_res3.ply", 32)

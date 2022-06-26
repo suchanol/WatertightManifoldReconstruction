@@ -55,6 +55,6 @@ def reconstruct_manifold(filename_point_cloud, resolutions=[16, 32, 64]):
 
     #smoothing
     print("smoothing")
-    vertices = np.load('vertices.npy')
-    edges = np.load('edges.npy')
+    vertices = np.load('samples/vertices.npy')
+    edges = np.load('samples/edges.npy')
     MeshExtraction.smoothing(grid, vertices, edges)
